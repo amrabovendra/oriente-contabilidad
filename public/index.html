@@ -196,6 +196,30 @@
       </div>
     </section>
 
+    <section class="seccion" data-seccion="venta-leche">
+      <div class="tarjeta">
+        <h2>Venta de leche</h2>
+        <form class="formulario" id="form-venta-leche">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Período
+            <select name="periodo" required>
+              <option value="SEMANAL">Semanal</option>
+              <option value="MENSUAL">Mensual</option>
+            </select>
+          </label>
+          <label>Monto (rubro total) <input type="number" step="0.01" name="monto" required></label>
+          <label class="ancho-completo">Nota (opcional) <input type="text" name="nota"></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar venta de leche</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Período</th><th>Monto</th><th>Nota</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="venta-leche-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="seccion" data-seccion="usuarios">
       <div class="tarjeta">
         <h2>Usuarios</h2>

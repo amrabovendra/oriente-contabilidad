@@ -11,6 +11,7 @@ const comprasGeneralesRouter = require('./routes/compras-generales');
 const transporteRouter = require('./routes/transporte');
 const compraGanadoRouter = require('./routes/compra-ganado');
 const ventaGanadoRouter = require('./routes/venta-ganado');
+const ventaLecheRouter = require('./routes/venta-leche');
 const libroRouter = require('./routes/libro');
 const usuariosRouter = require('./routes/usuarios');
 
@@ -51,6 +52,7 @@ app.use('/libro', requireLogin, libroRouter);
 // Estas dos SOLO para el rol ADMIN
 app.use('/compra-ganado', requireLogin, requireAdmin, compraGanadoRouter);
 app.use('/venta-ganado', requireLogin, requireAdmin, ventaGanadoRouter);
+app.use('/venta-leche', requireLogin, requireAdmin, ventaLecheRouter);
 
 // Gestión de usuarios: solo admin
 app.use('/usuarios', requireLogin, requireAdmin, usuariosRouter);

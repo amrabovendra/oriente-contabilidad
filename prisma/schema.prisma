@@ -30,6 +30,7 @@ model Usuario {
   transportes      Transporte[]
   comprasGanado    CompraGanado[]
   ventasGanado     VentaGanado[]
+  ventasLeche      VentaLeche[]
 
   @@map("usuarios")
 }
@@ -148,4 +149,21 @@ model VentaGanado {
 
   @@index([fecha])
   @@map("ventas_ganado")
+}
+
+// ---------- Venta de leche (SOLO admin) ----------
+// Solo el rubro total semanal o mensual, no el detalle diario (eso se queda
+// en la otra app, "Sistema Ganadero Finca Oriente"). periodo: "SEMANAL" | "MENSUAL".
+model VentaLeche {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  periodo         String
+  monto           Decimal  @db.Decimal(12, 2)
+  nota            String?
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("ventas_leche")
 }

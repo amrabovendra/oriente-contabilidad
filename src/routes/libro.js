@@ -20,7 +20,7 @@ async function obtenerMovimientos({ desde, hasta, esAdmin }) {
   if (hasta) rangoFecha.lte = hasta;
   const whereFecha = (desde || hasta) ? { fecha: rangoFecha } : {};
 
-  const [gastos, creditos, pagosCredito, comprasGenerales, transportes, comprasGanado, ventasGanado] =
+  const [gastos, creditos, pagosCredito, comprasGenerales, transportes, comprasGanado, ventasGanado, ventasLeche] =
     await Promise.all([
       prisma.gasto.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }),
       prisma.credito.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }),
@@ -29,6 +29,7 @@ async function obtenerMovimientos({ desde, hasta, esAdmin }) {
       prisma.transporte.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }),
       esAdmin ? prisma.compraGanado.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }) : [],
       esAdmin ? prisma.ventaGanado.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }) : [],
+      esAdmin ? prisma.ventaLeche.findMany({ where: whereFecha, include: { registradoPor: { select: { nombre: true } } } }) : [],
     ]);
 
   const movimientos = [];
@@ -86,6 +87,15 @@ async function obtenerMovimientos({ desde, hasta, esAdmin }) {
       registradoPor: v.registradoPor.nombre, origen: 'venta_ganado', origenId: v.id,
     });
   }
+  for (const l of ventasLeche) {
+    const etiquetaPeriodo = l.periodo === 'MENSUAL' ? 'mensual' : 'semanal';
+    movimientos.push({
+      fecha: l.fecha, tipo: 'INGRESO', categoria: 'Venta de leche',
+      descripcion: [`Venta de leche (${etiquetaPeriodo})`, l.nota].filter(Boolean).join(' - '),
+      monto: Number(l.monto),
+      registradoPor: l.registradoPor.nombre, origen: 'venta_leche', origenId: l.id,
+    });
+  }
 
   movimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
@@ -128,7 +138,7 @@ router.get('/', async (req, res) => {
   res.json({
     movimientos,
     resumen: resumenDe(movimientos),
-    alcance: esAdmin ? 'completo' : 'sin compra/venta de ganado',
+    alcance: esAdmin ? 'completo' : 'sin compra/venta de ganado ni venta de leche',
   });
 });
 
@@ -148,7 +158,7 @@ router.get('/desprendible', async (req, res) => {
     periodo: mes ? `${String(mes).padStart(2, '0')}/${anio}` : `Año ${anio}`,
     movimientos,
     resumen: resumenDe(movimientos),
-    alcance: esAdmin ? 'completo' : 'sin compra/venta de ganado',
+    alcance: esAdmin ? 'completo' : 'sin compra/venta de ganado ni venta de leche',
   });
 });
 

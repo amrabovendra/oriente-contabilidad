@@ -70,6 +70,7 @@ const SECCIONES_BASE = [
 const SECCIONES_ADMIN = [
   { id: 'compra-ganado', etiqueta: 'Compra de ganado' },
   { id: 'venta-ganado', etiqueta: 'Venta de ganado' },
+  { id: 'venta-leche', etiqueta: 'Venta de leche' },
   { id: 'usuarios', etiqueta: 'Usuarios' },
 ];
 
@@ -97,6 +98,7 @@ function irASeccion(id) {
     transporte: cargarTransporte,
     'compra-ganado': cargarCompraGanado,
     'venta-ganado': cargarVentaGanado,
+    'venta-leche': cargarVentaLeche,
     usuarios: cargarUsuarios,
   };
   if (cargadores[id]) cargadores[id]();
@@ -293,6 +295,26 @@ $('#form-venta-ganado').addEventListener('submit', async (e) => {
   await api('/venta-ganado', { method: 'POST', body: { fecha: f.get('fecha'), arete: f.get('arete') || null, comprador: f.get('comprador') || null, descripcion: f.get('descripcion') || null, monto: Number(f.get('monto')) } });
   e.target.reset();
   cargarVentaGanado();
+});
+
+async function cargarVentaLeche() {
+  const lista = await api('/venta-leche');
+  const tbody = $('#venta-leche-tabla');
+  tbody.innerHTML = '';
+  for (const l of lista) {
+    const tr = document.createElement('tr');
+    const etiquetaPeriodo = l.periodo === 'MENSUAL' ? 'Mensual' : 'Semanal';
+    tr.innerHTML = `<td>${formatoFecha(l.fecha)}</td><td>${etiquetaPeriodo}</td><td>${formatoMoneda(l.monto)}</td><td>${l.nota || ''}</td><td>${l.registradoPor.nombre}</td>`;
+    tr.appendChild(renderFilaBorrar('/venta-leche', l.id, cargarVentaLeche));
+    tbody.appendChild(tr);
+  }
+}
+$('#form-venta-leche').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  await api('/venta-leche', { method: 'POST', body: { fecha: f.get('fecha'), periodo: f.get('periodo'), monto: Number(f.get('monto')), nota: f.get('nota') || null } });
+  e.target.reset();
+  cargarVentaLeche();
 });
 
 // ---------- Usuarios (solo admin) ----------
