@@ -1,0 +1,151 @@
+// Oriente - Contabilidad
+// Proyecto totalmente aparte de "ganado-app": otra base de datos, no comparte nada.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- Usuarios y roles ----------
+// rol: "ADMIN" (Ana, ve y hace todo) | "AYUDANTE" (ve gastos, creditos, compras
+// generales y transporte, pero NO compra/venta de ganado).
+model Usuario {
+  id        String   @id @default(uuid())
+  nombre    String
+  usuario   String   @unique
+  claveHash String   @map("clave_hash")
+  rol       String
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  gastos           Gasto[]
+  creditos         Credito[]
+  pagosCredito     PagoCredito[]
+  comprasGenerales CompraGeneral[]
+  transportes      Transporte[]
+  comprasGanado    CompraGanado[]
+  ventasGanado     VentaGanado[]
+
+  @@map("usuarios")
+}
+
+// ---------- Gastos (ambos roles) ----------
+model Gasto {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  descripcion     String
+  monto           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("gastos")
+}
+
+// ---------- Creditos: dinero que la finca debe (ambos roles) ----------
+// Lleva fecha, numero de factura y acreedor. Se va abonando con PagoCredito
+// hasta que el saldo llega a 0 - ahí se marca "saldado" solo, para avisar que
+// ya se puede hacer la relacion.
+model Credito {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  numeroFactura   String   @map("numero_factura")
+  acreedor        String
+  montoOriginal   Decimal  @db.Decimal(12, 2) @map("monto_original")
+  saldado         Boolean  @default(false)
+  fechaSaldado    DateTime? @map("fecha_saldado")
+  nota            String?
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  pagos           PagoCredito[]
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("creditos")
+}
+
+model PagoCredito {
+  id              String   @id @default(uuid())
+  creditoId       String   @map("credito_id")
+  credito         Credito  @relation(fields: [creditoId], references: [id])
+  fecha           DateTime
+  monto           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([creditoId])
+  @@map("pagos_credito")
+}
+
+// ---------- Compras generales (ambos roles) ----------
+// categoria: "MEDICO_INSUMOS" | "MANTENIMIENTO" | "NO_OPERATIVO"
+model CompraGeneral {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  categoria       String
+  descripcion     String
+  monto           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@index([categoria])
+  @@map("compras_generales")
+}
+
+// ---------- Transporte (ambos roles) ----------
+model Transporte {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  origen          String?
+  destino         String?
+  queSeTransporto String?  @map("que_se_transporto")
+  transportador   String?
+  costo           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("transporte")
+}
+
+// ---------- Compra de ganado (SOLO admin) ----------
+model CompraGanado {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  arete           String?
+  descripcion     String?
+  proveedor       String?
+  monto           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("compras_ganado")
+}
+
+// ---------- Venta de ganado (SOLO admin) ----------
+model VentaGanado {
+  id              String   @id @default(uuid())
+  fecha           DateTime
+  arete           String?
+  descripcion     String?
+  comprador       String?
+  monto           Decimal  @db.Decimal(12, 2)
+  registradoPorId String   @map("registrado_por_id")
+  registradoPor   Usuario  @relation(fields: [registradoPorId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([fecha])
+  @@map("ventas_ganado")
+}

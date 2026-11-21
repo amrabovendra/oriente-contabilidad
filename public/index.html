@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Finca Oriente - Contabilidad</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="theme-color" content="#3b5d3a">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div id="pantalla-login">
+  <img src="/icons/header-logo.png" alt="Finca Oriente">
+  <form id="form-login">
+    <h2 style="margin:0;text-align:center;">Contabilidad Finca Oriente</h2>
+    <input type="text" id="login-usuario" placeholder="Usuario" autocomplete="username" required>
+    <input type="password" id="login-clave" placeholder="Clave" autocomplete="current-password" required>
+    <div class="mensaje-error" id="login-error"></div>
+    <button type="submit" class="boton-primario">Entrar</button>
+  </form>
+</div>
+
+<div id="app" class="oculto">
+  <header>
+    <img src="/icons/header-logo.png" alt="Finca Oriente">
+    <div class="titulo">Contabilidad Finca Oriente</div>
+    <div class="usuario-info">
+      <div id="info-nombre"></div>
+      <div id="info-rol"></div>
+    </div>
+    <button id="btn-salir">Salir</button>
+  </header>
+
+  <nav id="nav-principal"></nav>
+
+  <main>
+
+    <section class="seccion" data-seccion="libro">
+      <div class="tarjeta">
+        <h2>Libro contable</h2>
+        <div class="ayuda-filtro">
+          <label>Desde <input type="date" id="libro-desde"></label>
+          <label>Hasta <input type="date" id="libro-hasta"></label>
+          <button class="boton-secundario" id="btn-filtrar-libro">Filtrar</button>
+          <button class="boton-secundario" id="btn-limpiar-libro">Ver todo</button>
+        </div>
+        <div class="resumen-grid" id="libro-resumen"></div>
+        <div id="libro-nota-alcance" style="font-size:12px;color:#777;margin-bottom:8px;"></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Saldo</th><th>Quién</th></tr></thead>
+            <tbody id="libro-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="desprendible">
+      <div class="tarjeta">
+        <h2>Desprendible mensual / anual</h2>
+        <div class="ayuda-filtro">
+          <label>Año <input type="number" id="desp-anio" value="2026" style="width:90px;"></label>
+          <label>Mes (opcional) <select id="desp-mes">
+            <option value="">Todo el año</option>
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select></label>
+          <button class="boton-secundario" id="btn-generar-desprendible">Generar</button>
+          <button class="boton-secundario" id="btn-imprimir-desprendible">Imprimir / Guardar PDF</button>
+        </div>
+        <div id="desp-contenido"></div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="gastos">
+      <div class="tarjeta">
+        <h2>Gastos</h2>
+        <form class="formulario" id="form-gastos">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label class="ancho-completo">Descripción <input type="text" name="descripcion" required></label>
+          <label>Monto <input type="number" step="0.01" name="monto" required></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar gasto</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="gastos-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="creditos">
+      <div class="tarjeta">
+        <h2>Créditos (deudas de la finca)</h2>
+        <form class="formulario" id="form-creditos">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Número de factura <input type="text" name="numeroFactura" required></label>
+          <label>Acreedor <input type="text" name="acreedor" required></label>
+          <label>Monto original <input type="number" step="0.01" name="montoOriginal" required></label>
+          <label class="ancho-completo">Nota (opcional) <input type="text" name="nota"></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar crédito</button></div>
+        </form>
+        <div id="creditos-lista"></div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="compras-generales">
+      <div class="tarjeta">
+        <h2>Compras generales</h2>
+        <form class="formulario" id="form-compras-generales">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Categoría
+            <select name="categoria" required>
+              <option value="MEDICO_INSUMOS">Médico / Insumos</option>
+              <option value="MANTENIMIENTO">Mantenimiento finca</option>
+              <option value="NO_OPERATIVO">Gasto no operativo</option>
+            </select>
+          </label>
+          <label class="ancho-completo">Descripción <input type="text" name="descripcion" required></label>
+          <label>Monto <input type="number" step="0.01" name="monto" required></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar compra</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="compras-generales-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="transporte">
+      <div class="tarjeta">
+        <h2>Transporte</h2>
+        <form class="formulario" id="form-transporte">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Origen <input type="text" name="origen"></label>
+          <label>Destino <input type="text" name="destino"></label>
+          <label>Qué se transportó <input type="text" name="queSeTransporto"></label>
+          <label>Transportador / vehículo <input type="text" name="transportador"></label>
+          <label>Costo <input type="number" step="0.01" name="costo" required></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar transporte</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Ruta</th><th>Qué</th><th>Transportador</th><th>Costo</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="transporte-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="compra-ganado">
+      <div class="tarjeta">
+        <h2>Compra de ganado</h2>
+        <form class="formulario" id="form-compra-ganado">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Arete <input type="text" name="arete"></label>
+          <label>Proveedor <input type="text" name="proveedor"></label>
+          <label class="ancho-completo">Descripción <input type="text" name="descripcion"></label>
+          <label>Monto <input type="number" step="0.01" name="monto" required></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar compra de ganado</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Arete</th><th>Proveedor</th><th>Descripción</th><th>Monto</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="compra-ganado-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="venta-ganado">
+      <div class="tarjeta">
+        <h2>Venta de ganado</h2>
+        <form class="formulario" id="form-venta-ganado">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Arete <input type="text" name="arete"></label>
+          <label>Comprador <input type="text" name="comprador"></label>
+          <label class="ancho-completo">Descripción <input type="text" name="descripcion"></label>
+          <label>Monto <input type="number" step="0.01" name="monto" required></label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Agregar venta de ganado</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Arete</th><th>Comprador</th><th>Descripción</th><th>Monto</th><th>Quién</th><th></th></tr></thead>
+            <tbody id="venta-ganado-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="seccion" data-seccion="usuarios">
+      <div class="tarjeta">
+        <h2>Usuarios</h2>
+        <form class="formulario" id="form-usuarios">
+          <label>Nombre completo <input type="text" name="nombre" required></label>
+          <label>Usuario <input type="text" name="usuario" required></label>
+          <label>Clave <input type="password" name="clave" required minlength="6"></label>
+          <label>Rol
+            <select name="rol" required>
+              <option value="AYUDANTE">Ayudante</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </label>
+          <div class="ancho-completo"><button type="submit" class="boton-primario">Crear usuario</button></div>
+        </form>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Activo</th></tr></thead>
+            <tbody id="usuarios-tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
